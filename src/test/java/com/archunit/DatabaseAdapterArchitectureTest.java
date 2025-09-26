@@ -1,4 +1,4 @@
-package com.archunit.hexagonal;
+package com.archunit;
 
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
