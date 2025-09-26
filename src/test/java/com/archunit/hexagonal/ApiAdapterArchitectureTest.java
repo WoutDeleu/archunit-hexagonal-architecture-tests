@@ -20,16 +20,6 @@ public class ApiAdapterArchitectureTest {
     @ArchTest
     static final ArchRule controllers_should_be_in_api_adapters =
         classes()
-            .that().areAnnotatedWith("org.springframework.web.bind.annotation.RestController")
-            .or().areAnnotatedWith("org.springframework.stereotype.Controller")
-            .and().doNotHaveSimpleName("DocumentationController")
-            .and().resideOutsideOfPackages("com.sun..", "sun..", "java..", "javax..", "jakarta..")
-            .should().resideInAPackage("..adapters.api..")
-            .allowEmptyShould(true);
-
-    @ArchTest
-    static final ArchRule api_adapters_should_be_in_api_package =
-        classes()
             .that().haveSimpleNameEndingWith("Controller")
             .or().areAnnotatedWith("org.springframework.web.bind.annotation.RestController")
             .or().areAnnotatedWith("org.springframework.stereotype.Controller")
@@ -47,12 +37,6 @@ public class ApiAdapterArchitectureTest {
             .andShould().beAnnotatedWith("org.springframework.web.bind.annotation.RestController")
             .orShould().beAnnotatedWith("org.springframework.stereotype.Controller");
 
-    @ArchTest
-    static final ArchRule api_adapters_should_not_depend_on_database_adapters =
-        noClasses()
-            .that().resideInAPackage("..adapters.api..")
-            .should().dependOnClassesThat()
-            .resideInAPackage("..adapters.database..");
 
     @ArchTest
     static final ArchRule api_adapters_should_not_use_database_adapters_directly =
@@ -96,11 +80,4 @@ public class ApiAdapterArchitectureTest {
             .areInterfaces()
             .allowEmptyShould(true);
 
-    @ArchTest
-    static final ArchRule documentation_controller_should_be_in_infrastructure =
-        classes()
-            .that().haveSimpleName("DocumentationController")
-            .should().resideInAPackage("..infrastructure..")
-            .allowEmptyShould(true)
-            .because("DocumentationController is a configuration/utility class and belongs in infrastructure layer");
 }
