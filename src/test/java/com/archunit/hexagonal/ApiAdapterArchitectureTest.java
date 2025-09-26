@@ -46,25 +46,18 @@ public class ApiAdapterArchitectureTest {
             .areAnnotatedWith("org.springframework.stereotype.Repository")
             .orShould().dependOnClassesThat()
             .areAssignableTo("org.springframework.data.repository.Repository");
-
-    @ArchTest
-    static final ArchRule api_adapters_should_only_access_core_and_infrastructure =
-        classes()
-            .that().resideInAPackage("..adapters.api..")
-            .should().onlyDependOnClassesThat()
-            .resideInAnyPackage("..core..", "..adapters.api..", "..infrastructure..", "java..", "javax..", "jakarta..", "org.springframework..");
-
-    @ArchTest
-    static final ArchRule controllers_should_use_core_port_interfaces =
-        classes()
-            .that().haveSimpleNameEndingWith("Controller")
-            .and().areAnnotatedWith("org.springframework.stereotype.Controller")
-            .or().haveSimpleNameEndingWith("Controller")
-            .and().areAnnotatedWith("org.springframework.web.bind.annotation.RestController")
-            .and().doNotHaveSimpleName("DocumentationController")
-            .should().onlyDependOnClassesThat()
-            .resideInAnyPackage("..core..port..", "..core..", "..adapters.api..", "..infrastructure..", "java..", "javax..", "jakarta..", "org.springframework..")
-            .allowEmptyShould(true);
+@ArchTest
+static final ArchRule api_adapters_and_controllers_should_only_access_allowed_packages =
+    classes()
+        .that().resideInAPackage("..adapters.api..")
+        .or().haveSimpleNameEndingWith("Controller")
+        .and().areAnnotatedWith("org.springframework.stereotype.Controller")
+        .or().haveSimpleNameEndingWith("Controller")
+        .and().areAnnotatedWith("org.springframework.web.bind.annotation.RestController")
+        .and().doNotHaveSimpleName("DocumentationController")
+        .should().onlyDependOnClassesThat()
+        .resideInAnyPackage("..core..port..", "..core..", "..adapters.api..", "..infrastructure..", "java..", "javax..", "jakarta..", "org.springframework..")
+        .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule controllers_must_depend_on_port_interfaces =

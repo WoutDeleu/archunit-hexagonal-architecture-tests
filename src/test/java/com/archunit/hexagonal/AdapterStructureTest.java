@@ -1,6 +1,7 @@
 package com.archunit.hexagonal;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -30,4 +31,5 @@ public class AdapterStructureTest {
           .should()
           .haveSimpleNameEndingWith("Adapter")
           .because("Each adapter package must contain at least one class ending with 'Adapter'");
+
 }

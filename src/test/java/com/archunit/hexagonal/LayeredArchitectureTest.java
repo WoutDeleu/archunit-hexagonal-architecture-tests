@@ -40,9 +40,48 @@ public class LayeredArchitectureTest {
             .resideOutsideOfPackages("..adapters..", "..infrastructure..");
 
     @ArchTest
-    static final ArchRule adapters_should_not_depend_on_each_other =
+    static final ArchRule api_adapters_should_not_depend_on_other_adapters =
         noClasses()
             .that().resideInAPackage("..adapters.api..")
             .should().dependOnClassesThat()
-            .resideInAPackage("..adapters.database..");
+            .resideInAnyPackage("..adapters.database..", "..adapters.messaging..", "..adapters.external..", "..adapters.kafka..")
+            .allowEmptyShould(true)
+            .because("API adapters should not depend on other adapter types (database, messaging, external, kafka, etc.)");
+
+    @ArchTest
+    static final ArchRule database_adapters_should_not_depend_on_other_adapters =
+        noClasses()
+            .that().resideInAPackage("..adapters.database..")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage("..adapters.api..", "..adapters.messaging..", "..adapters.external..", "..adapters.kafka..")
+            .allowEmptyShould(true)
+            .because("Database adapters should not depend on other adapter types (api, messaging, external, kafka, etc.)");
+
+    @ArchTest
+    static final ArchRule messaging_adapters_should_not_depend_on_other_adapters =
+        noClasses()
+            .that().resideInAPackage("..adapters.messaging..")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage("..adapters.api..", "..adapters.database..", "..adapters.external..", "..adapters.kafka..")
+            .allowEmptyShould(true)
+            .because("Messaging adapters should not depend on other adapter types (api, database, external, kafka, etc.)");
+
+    @ArchTest
+    static final ArchRule external_adapters_should_not_depend_on_other_adapters =
+        noClasses()
+            .that().resideInAPackage("..adapters.external..")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage("..adapters.api..", "..adapters.database..", "..adapters.messaging..", "..adapters.kafka..")
+            .allowEmptyShould(true)
+            .because("External adapters should not depend on other adapter types (api, database, messaging, kafka, etc.)");
+
+    @ArchTest
+    static final ArchRule kafka_adapters_should_not_depend_on_other_adapters =
+        noClasses()
+            .that().resideInAPackage("..adapters.kafka..")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage("..adapters.api..", "..adapters.database..", "..adapters.messaging..", "..adapters.external..")
+            .allowEmptyShould(true)
+            .because("Kafka adapters should not depend on other adapter types (api, database, messaging, external, etc.)");
+
 }
