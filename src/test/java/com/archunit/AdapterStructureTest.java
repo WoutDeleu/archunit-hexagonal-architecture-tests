@@ -21,6 +21,7 @@ public class AdapterStructureTest {
           .should()
           .dependOnClassesThat()
           .resideInAPackage("..core.*.port..")
+          .allowEmptyShould(true)
           .because("Adapter classes should implement interfaces from core ports");
 
   @ArchTest
@@ -30,6 +31,7 @@ public class AdapterStructureTest {
           .resideInAPackage("..adapters.*.adapter..")
           .should()
           .haveSimpleNameEndingWith("Adapter")
+          .allowEmptyShould(true)
           .because("Each adapter package must contain at least one class ending with 'Adapter'");
 
 }

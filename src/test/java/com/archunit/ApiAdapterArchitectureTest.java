@@ -35,7 +35,8 @@ public class ApiAdapterArchitectureTest {
             .and().doNotHaveSimpleName("DocumentationController")
             .should().haveSimpleNameEndingWith("Controller")
             .andShould().beAnnotatedWith("org.springframework.web.bind.annotation.RestController")
-            .orShould().beAnnotatedWith("org.springframework.stereotype.Controller");
+            .orShould().beAnnotatedWith("org.springframework.stereotype.Controller")
+            .allowEmptyShould(true);
 
 @ArchTest
 static final ArchRule api_adapters_and_controllers_should_only_access_allowed_packages =

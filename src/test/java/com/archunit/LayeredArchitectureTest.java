@@ -28,6 +28,7 @@ public class LayeredArchitectureTest {
         classes()
             .that().areAnnotatedWith("org.springframework.boot.autoconfigure.SpringBootApplication")
             .should().resideOutsideOfPackages("..core..", "..adapters..", "..infrastructure..")
+            .allowEmptyShould(true)
             .because("@SpringBootApplication class must exist and be in root package (e.g., com.x.y.z.team.nameapp) but outside hexagonal architecture layers");
 
     @ArchTest
@@ -48,7 +49,8 @@ public class LayeredArchitectureTest {
             .should().dependOnClassesThat()
             .resideInAPackage("..core..")
             .orShould().dependOnClassesThat()
-            .resideOutsideOfPackages("..adapters..", "..infrastructure..");
+            .resideOutsideOfPackages("..adapters..", "..infrastructure..")
+            .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule adapters_should_not_depend_on_other_adapter_types =

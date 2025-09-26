@@ -42,7 +42,8 @@ public class DatabaseAdapterArchitectureTest {
             .or().areAnnotatedWith("javax.persistence.Entity")
             .should().beAnnotatedWith("org.springframework.stereotype.Component")
             .orShould().beAnnotatedWith("org.springframework.stereotype.Service")
-            .orShould().beAnnotatedWith("org.springframework.stereotype.Repository");
+            .orShould().beAnnotatedWith("org.springframework.stereotype.Repository")
+            .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule database_adapters_should_implement_core_interfaces =
@@ -53,5 +54,6 @@ public class DatabaseAdapterArchitectureTest {
             .resideInAPackage("..core..")
             .andShould().beAnnotatedWith("org.springframework.stereotype.Component")
             .orShould().beAnnotatedWith("org.springframework.stereotype.Service")
-            .orShould().beAnnotatedWith("org.springframework.stereotype.Repository");
+            .orShould().beAnnotatedWith("org.springframework.stereotype.Repository")
+            .allowEmptyShould(true);
 }

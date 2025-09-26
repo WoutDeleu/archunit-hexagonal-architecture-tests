@@ -7,7 +7,7 @@
 
 A comprehensive collection of **ArchUnit tests** for enforcing **hexagonal architecture** (ports and adapters) patterns in Spring Boot applications. These tests ensure clean architecture boundaries and prevent architectural violations at build time.
 
-> **✨ Latest Updates**: Generic cross-adapter isolation rules, cleaned duplicate tests, and comprehensive package structure validation with self-dependency support!
+> **✨ Latest Updates**: Generic cross-adapter isolation rules, cleaned duplicate tests, comprehensive package structure validation with self-dependency support, and empty repository compatibility!
 
 ## 🎯 Overview
 
@@ -19,6 +19,7 @@ This project provides a battle-tested set of reusable ArchUnit tests that valida
 - **🧹 Eliminated Duplicates**: Removed all duplicate test rules and organized into focused, logical test files
 - **📦 Mandatory Package Structure**: Enforced structure for core (model, port, usecase, exceptions) and adapters (adapter, entity)
 - **🌍 Flexible Root Packages**: SpringBoot application support for any depth (com.x.y.z.team.nameapp)
+- **🔬 Empty Repository Compatible**: All tests now support empty codebases with `.allowEmptyShould(true)` for graceful defensive validation
 - **🏷️ Attribution License**: BSD 3-Clause with proper creator attribution (Wout Deleu)
 - **📋 37 Focused Tests**: Organized across 6 logical test files instead of scattered duplicates
 
