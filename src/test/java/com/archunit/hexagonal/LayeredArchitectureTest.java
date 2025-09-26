@@ -18,6 +18,12 @@ import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
     }
 )
 public class LayeredArchitectureTest {
+    @ArchTest
+    static final ArchRule spring_boot_application_should_be_in_root =
+        classes()
+            .that().areAnnotatedWith("org.springframework.boot.autoconfigure.SpringBootApplication")
+            .should().resideOutsideOfPackages("..core..", "..adapters..", "..infrastructure..")
+            .because("@SpringBootApplication class must exist and be in root package (e.g., com.x.y.z.team.nameapp) but outside hexagonal architecture layers");
 
     @ArchTest
     static final ArchRule hexagonal_architecture_is_respected = layeredArchitecture()
