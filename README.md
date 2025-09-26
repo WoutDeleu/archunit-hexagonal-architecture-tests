@@ -3,7 +3,7 @@
 [![Java](https://img.shields.io/badge/Java-17%2B-orange)](https://openjdk.org/)
 [![Maven](https://img.shields.io/badge/Maven-3.6%2B-blue)](https://maven.apache.org/)
 [![ArchUnit](https://img.shields.io/badge/ArchUnit-1.2.1-green)](https://www.archunit.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 A comprehensive collection of **ArchUnit tests** for enforcing **hexagonal architecture** (ports and adapters) patterns in Spring Boot applications. These tests ensure clean architecture boundaries and prevent architectural violations at build time.
 
@@ -333,7 +333,15 @@ Add to your CI/CD pipeline:
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+This project is licensed under the BSD 3-Clause License with Attribution Requirement - see the [LICENSE](LICENSE) file for details.
+
+**Attribution Required**: When using this software, please include attribution to Wout Deleu as the original author.
+
+## 👨‍💻 Author
+
+**Wout Deleu** - *Original Author & Creator*
+
+This comprehensive ArchUnit test suite was created to help development teams maintain clean hexagonal architecture in their Spring Boot applications.
 
 ## 🙏 Acknowledgments
 
