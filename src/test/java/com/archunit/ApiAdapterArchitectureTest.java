@@ -37,15 +37,6 @@ public class ApiAdapterArchitectureTest {
             .andShould().beAnnotatedWith("org.springframework.web.bind.annotation.RestController")
             .orShould().beAnnotatedWith("org.springframework.stereotype.Controller");
 
-
-    @ArchTest
-    static final ArchRule api_adapters_should_not_use_database_adapters_directly =
-        noClasses()
-            .that().resideInAPackage("..adapters.api..")
-            .should().dependOnClassesThat()
-            .areAnnotatedWith("org.springframework.stereotype.Repository")
-            .orShould().dependOnClassesThat()
-            .areAssignableTo("org.springframework.data.repository.Repository");
 @ArchTest
 static final ArchRule api_adapters_and_controllers_should_only_access_allowed_packages =
     classes()

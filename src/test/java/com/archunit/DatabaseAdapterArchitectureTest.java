@@ -28,12 +28,6 @@ public class DatabaseAdapterArchitectureTest {
             .allowEmptyShould(true);
 
     @ArchTest
-    static final ArchRule database_adapters_should_not_depend_on_api_adapters =
-        noClasses()
-            .that().resideInAPackage("..adapters.database..")
-            .should().dependOnClassesThat()
-            .resideInAPackage("..adapters.api..");
-    @ArchTest
     static final ArchRule jpa_entities_should_be_in_database_adapters =
         classes()
             .that().areAnnotatedWith("jakarta.persistence.Entity")

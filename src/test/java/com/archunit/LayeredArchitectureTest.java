@@ -4,6 +4,11 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.Dependency;
+import com.tngtech.archunit.lang.ArchCondition;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -46,48 +51,57 @@ public class LayeredArchitectureTest {
             .resideOutsideOfPackages("..adapters..", "..infrastructure..");
 
     @ArchTest
-    static final ArchRule api_adapters_should_not_depend_on_other_adapters =
-        noClasses()
-            .that().resideInAPackage("..adapters.api..")
-            .should().dependOnClassesThat()
-            .resideInAnyPackage("..adapters.database..", "..adapters.messaging..", "..adapters.external..", "..adapters.kafka..")
+    static final ArchRule adapters_should_not_depend_on_other_adapter_types =
+        classes()
+            .that().resideInAPackage("..adapters..")
+            .should(notDependOnOtherAdapterTypes())
             .allowEmptyShould(true)
-            .because("API adapters should not depend on other adapter types (database, messaging, external, kafka, etc.)");
+            .because("Adapters should not depend on other adapter types - each adapter type (api, database, messaging, external, etc.) should only depend on classes within their own adapter type, core, infrastructure, and standard libraries");
 
-    @ArchTest
-    static final ArchRule database_adapters_should_not_depend_on_other_adapters =
-        noClasses()
-            .that().resideInAPackage("..adapters.database..")
-            .should().dependOnClassesThat()
-            .resideInAnyPackage("..adapters.api..", "..adapters.messaging..", "..adapters.external..", "..adapters.kafka..")
-            .allowEmptyShould(true)
-            .because("Database adapters should not depend on other adapter types (api, messaging, external, kafka, etc.)");
+    // Custom condition to check cross-adapter dependencies
+    private static ArchCondition<JavaClass> notDependOnOtherAdapterTypes() {
+        return new ArchCondition<JavaClass>("not depend on other adapter types") {
+            @Override
+            public void check(JavaClass javaClass, ConditionEvents events) {
+                String sourceAdapterType = extractAdapterType(javaClass.getPackageName());
 
-    @ArchTest
-    static final ArchRule messaging_adapters_should_not_depend_on_other_adapters =
-        noClasses()
-            .that().resideInAPackage("..adapters.messaging..")
-            .should().dependOnClassesThat()
-            .resideInAnyPackage("..adapters.api..", "..adapters.database..", "..adapters.external..", "..adapters.kafka..")
-            .allowEmptyShould(true)
-            .because("Messaging adapters should not depend on other adapter types (api, database, external, kafka, etc.)");
+                for (Dependency dependency : javaClass.getDirectDependenciesFromSelf()) {
+                    JavaClass targetClass = dependency.getTargetClass();
+                    String targetPackage = targetClass.getPackageName();
 
-    @ArchTest
-    static final ArchRule external_adapters_should_not_depend_on_other_adapters =
-        noClasses()
-            .that().resideInAPackage("..adapters.external..")
-            .should().dependOnClassesThat()
-            .resideInAnyPackage("..adapters.api..", "..adapters.database..", "..adapters.messaging..", "..adapters.kafka..")
-            .allowEmptyShould(true)
-            .because("External adapters should not depend on other adapter types (api, database, messaging, kafka, etc.)");
+                    // Skip if target is not in adapters package
+                    if (!targetPackage.contains(".adapters.")) {
+                        continue;
+                    }
 
-    @ArchTest
-    static final ArchRule kafka_adapters_should_not_depend_on_other_adapters =
-        noClasses()
-            .that().resideInAPackage("..adapters.kafka..")
-            .should().dependOnClassesThat()
-            .resideInAnyPackage("..adapters.api..", "..adapters.database..", "..adapters.messaging..", "..adapters.external..")
-            .allowEmptyShould(true)
-            .because("Kafka adapters should not depend on other adapter types (api, database, messaging, external, etc.)");
+                    String targetAdapterType = extractAdapterType(targetPackage);
+
+                    // Allow same adapter type dependencies
+                    if (sourceAdapterType != null && sourceAdapterType.equals(targetAdapterType)) {
+                        continue;
+                    }
+
+                    // Violation: different adapter types
+                    if (sourceAdapterType != null && targetAdapterType != null &&
+                        !sourceAdapterType.equals(targetAdapterType)) {
+                        events.add(SimpleConditionEvent.violated(dependency,
+                            String.format("Class %s in adapter type '%s' depends on class %s in adapter type '%s'",
+                                javaClass.getName(), sourceAdapterType,
+                                targetClass.getName(), targetAdapterType)));
+                    }
+                }
+            }
+        };
+    }
+
+    // Helper method to extract adapter type from package name
+    private static String extractAdapterType(String packageName) {
+        if (!packageName.contains(".adapters.")) return null;
+
+        String afterAdapters = packageName.substring(packageName.indexOf(".adapters.") + 10);
+        int dotIndex = afterAdapters.indexOf('.');
+
+        return dotIndex > 0 ? afterAdapters.substring(0, dotIndex) : afterAdapters;
+    }
 
 }

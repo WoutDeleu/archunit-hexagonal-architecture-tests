@@ -126,11 +126,7 @@ Validates overall architectural boundaries and cross-adapter isolation:
 - **`hexagonal_architecture_is_respected`** - Layered architecture enforcement
 - **`spring_boot_application_should_be_in_root`** - Main class placement *(mandatory)*
 - **`adapters_should_depend_on_core`** - Adapters use core interfaces
-- **`api_adapters_should_not_depend_on_other_adapters`** - API isolation from database/messaging/external/kafka
-- **`database_adapters_should_not_depend_on_other_adapters`** - Database isolation from api/messaging/external/kafka
-- **`messaging_adapters_should_not_depend_on_other_adapters`** - Messaging isolation from api/database/external/kafka
-- **`external_adapters_should_not_depend_on_other_adapters`** - External service isolation from api/database/messaging/kafka
-- **`kafka_adapters_should_not_depend_on_other_adapters`** - Kafka isolation from api/database/messaging/external
+- **`adapters_should_not_depend_on_other_adapter_types`** - Generic cross-adapter isolation (api, database, messaging, external, kafka, etc.) with self-dependency support
 
 ### 🧠 Core Domain Architecture Tests (`CoreDomainArchitectureTest.java`)
 Ensures core layer purity and framework independence:
