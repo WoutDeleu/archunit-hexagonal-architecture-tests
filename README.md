@@ -376,6 +376,195 @@ Add to your CI/CD pipeline:
     echo "✅ Architecture tests passed!"
 ```
 
+## 🧪 Testing the Samples
+
+This repository includes comprehensive samples that demonstrate the ArchUnit tests in action. You can experiment with both **valid hexagonal architecture** and **architectural violations** to see how the tests work.
+
+### 📁 Sample Structure
+
+The repository contains a complete **e-commerce application** following hexagonal architecture:
+
+```
+src/main/java/com/example/ecommerce/
+├── EcommerceApplication.java              # ✅ Spring Boot app in root
+├── core/                                  # ✅ Domain logic
+│   ├── product/
+│   │   ├── model/Product.java            # ✅ Pure domain entities
+│   │   ├── port/ProductRepository.java   # ✅ Interface contracts
+│   │   ├── usecase/ProductService.java   # ✅ Business logic
+│   │   └── exceptions/                   # ✅ Domain exceptions
+│   └── order/
+│       ├── model/Order.java
+│       ├── port/OrderRepository.java
+│       ├── usecase/OrderService.java
+│       └── exceptions/
+├── adapters/                             # ✅ External interface implementations
+│   ├── api/
+│   │   ├── adapter/ProductController.java # ✅ REST controllers
+│   │   └── entity/ProductDto.java         # ✅ API DTOs
+│   ├── database/
+│   │   ├── adapter/ProductRepositoryAdapter.java # ✅ JPA implementations
+│   │   └── entity/ProductEntity.java      # ✅ JPA entities
+│   ├── messaging/
+│   │   └── adapter/NotificationServiceAdapter.java
+│   └── external/
+│       └── adapter/PaymentServiceAdapter.java
+├── infrastructure/                       # ✅ Cross-cutting concerns
+│   ├── config/DatabaseConfig.java        # ✅ Configuration
+│   ├── util/DateTimeUtil.java           # ✅ Utilities
+│   └── DocumentationController.java      # ✅ Special case (allowed)
+└── violations/                           # ❌ Intentional violations for testing
+    ├── BadCoreWithSpringAnnotations.java # ❌ Core with @Service
+    ├── BadEntityWithSpringAnnotations.java # ❌ Entity with @Repository
+    ├── BadControllerInCore.java          # ❌ Controller in wrong package
+    ├── BadRepositoryInCore.java          # ❌ Repository in core
+    └── BadCrossDependency.java           # ❌ Cross-adapter dependency
+```
+
+### 🧪 Running Sample Tests
+
+#### 1. **Test Valid Architecture** ✅
+
+Test the properly structured hexagonal architecture:
+
+```bash
+# Clone and test the current codebase
+git clone https://github.com/WoutDeleu/archunit-hexagonal-architecture-tests.git
+cd archunit-hexagonal-architecture-tests
+
+# Run all tests - should PASS with some expected violations from 'violations/' package
+mvn test
+
+# Expected: Some tests fail due to intentional violations in 'violations/' package
+```
+
+#### 2. **Test Empty Repository** ✅
+
+Demonstrate that tests work on empty projects:
+
+```bash
+# Test with empty codebase
+cd empty-repo-test
+mvn test
+
+# Expected: All tests PASS ✅ (22 tests, 0 failures)
+# This proves .allowEmptyShould(true) works correctly
+```
+
+#### 3. **Test Clean Architecture** ✅
+
+Remove violations to see all tests pass:
+
+```bash
+# Temporarily remove violations
+mv src/main/java/com/example/ecommerce/violations src/main/java/com/example/ecommerce/violations.backup
+
+# Run tests
+mvn test
+
+# Expected: All tests PASS ✅
+# Restore violations
+mv src/main/java/com/example/ecommerce/violations.backup src/main/java/com/example/ecommerce/violations
+```
+
+### 📊 Expected Test Results
+
+#### **With Violation Samples** (Default):
+```bash
+mvn test
+# Results:
+[ERROR] LayeredArchitectureTest.hexagonal_architecture_is_respected: 11 violations
+- Cross-adapter dependencies detected ❌
+- Core classes using Spring annotations ❌
+- Controllers in wrong packages ❌
+- Entities with Spring annotations ❌
+```
+
+#### **Empty Repository**:
+```bash
+cd empty-repo-test && mvn test
+# Results:
+[INFO] Tests run: 22, Failures: 0, Errors: 0, Skipped: 0 ✅
+# All tests pass gracefully when no code exists
+```
+
+#### **Clean Architecture** (no violations):
+```bash
+# After removing violations/ directory
+mvn test
+# Results:
+[INFO] Tests run: 22, Failures: 0, Errors: 0, Skipped: 0 ✅
+# All tests pass with proper hexagonal architecture
+```
+
+### 🎯 Interactive Testing
+
+Try these experiments to see the tests in action:
+
+#### **1. Create a Violation**
+```java
+// Add this to core/product/model/Product.java
+@Service  // ❌ This will be caught!
+public class Product {
+    // ...
+}
+```
+
+Run: `mvn test -Dtest=CoreDomainArchitectureTest`
+**Expected**: `core_should_not_use_spring_annotations` fails ❌
+
+#### **2. Fix a Violation**
+```java
+// Remove @Repository from violations/BadEntityWithSpringAnnotations.java
+// @Repository  // ✅ Remove this line
+@Entity
+public class BadEntityWithSpringAnnotations {
+    // ...
+}
+```
+
+Run: `mvn test -Dtest=DatabaseAdapterArchitectureTest`
+**Expected**: `entities_should_not_use_spring_annotations` passes ✅
+
+#### **3. Test Cross-Adapter Dependencies**
+```java
+// Try adding this import to any API adapter
+import com.example.ecommerce.adapters.database.entity.ProductEntity; // ❌ Violation!
+```
+
+Run: `mvn test -Dtest=LayeredArchitectureTest`
+**Expected**: `adapters_should_not_depend_on_other_adapter_types` fails ❌
+
+### 🔍 Understanding Test Output
+
+When tests fail, you'll see detailed violation reports:
+
+```
+Architecture Violation [Priority: MEDIUM] - Rule 'adapters should not depend on other adapter types' was violated (1 times):
+Method <com.example.BadCrossDependency.convertEntity(ProductEntity)> has parameter of type <ProductEntity> in (BadCrossDependency.java:0)
+                                                                       ^^^^^^^^^^^
+                                          This shows exactly where the violation occurs
+```
+
+### 🚀 Integration with Your Project
+
+To use these tests in your own project:
+
+1. **Copy test files** to your `src/test/java/`
+2. **Update pom.xml** with ArchUnit dependencies
+3. **Run tests** to see current violations
+4. **Fix violations** one by one
+5. **Add to CI/CD** to prevent future violations
+
+```bash
+# Quick setup for existing project
+cp -r src/test/java/com/archunit your-project/src/test/java/
+# Update your pom.xml with ArchUnit dependencies
+# Run: mvn test
+```
+
+The samples provide a complete reference implementation and testing environment to understand how hexagonal architecture should be structured and validated! 🎯
+
 ## 🤝 Contributing
 
 1. Fork the repository
