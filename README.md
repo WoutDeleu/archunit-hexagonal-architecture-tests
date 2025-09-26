@@ -7,9 +7,20 @@
 
 A comprehensive collection of **ArchUnit tests** for enforcing **hexagonal architecture** (ports and adapters) patterns in Spring Boot applications. These tests ensure clean architecture boundaries and prevent architectural violations at build time.
 
+> **✨ Latest Updates**: Generic cross-adapter isolation rules, cleaned duplicate tests, and comprehensive package structure validation with self-dependency support!
+
 ## 🎯 Overview
 
 This project provides a battle-tested set of reusable ArchUnit tests that validate hexagonal architecture patterns in Java applications. The tests enforce proper separation of concerns between core business logic, adapters, and infrastructure layers, helping maintain clean architecture principles.
+
+## 🆕 Recent Improvements
+
+- **🔄 Generic Cross-Adapter Isolation**: Comprehensive rules preventing any adapter type from depending on others (api, database, messaging, external, kafka, etc.) while allowing self-dependencies
+- **🧹 Eliminated Duplicates**: Removed all duplicate test rules and organized into focused, logical test files
+- **📦 Mandatory Package Structure**: Enforced structure for core (model, port, usecase, exceptions) and adapters (adapter, entity)
+- **🌍 Flexible Root Packages**: SpringBoot application support for any depth (com.x.y.z.team.nameapp)
+- **🏷️ Attribution License**: BSD 3-Clause with proper creator attribution (Wout Deleu)
+- **📋 37 Focused Tests**: Organized across 6 logical test files instead of scattered duplicates
 
 ## 🏗️ Architecture Layers
 
@@ -106,29 +117,65 @@ Enforces adapter layer structure and dependencies:
 ### 🔄 Adapter Structure Tests (`AdapterStructureTest.java`)
 Validates adapter package organization:
 
-- **`adapter_layer_should_contain_required_packages`** - Enforces adapter/entity subpackages
-- **`adapter_classes_should_be_in_correct_subpackages`** - Proper file placement
 - **`adapter_classes_should_implement_core_ports`** - Port interface implementation
 - **`each_adapter_package_should_have_at_least_one_adapter_class`** - Mandatory adapter classes
-- **`adapter_entities_should_not_depend_on_core`** - Entity isolation
-- **`adapter_classes_should_not_be_in_entity_package`** - Prevents misplacement
-- **`entity_classes_should_not_be_in_adapter_package`** - Separation of concerns
 
-### 🌱 Spring Boot Architecture Tests (`SpringBootArchitectureTest.java`)
-Spring Boot specific architectural rules:
+### 🏛️ Layered Architecture Tests (`LayeredArchitectureTest.java`)
+Validates overall architectural boundaries and cross-adapter isolation:
+
+- **`hexagonal_architecture_is_respected`** - Layered architecture enforcement
+- **`spring_boot_application_should_be_in_root`** - Main class placement *(mandatory)*
+- **`adapters_should_depend_on_core`** - Adapters use core interfaces
+- **`api_adapters_should_not_depend_on_other_adapters`** - API isolation from database/messaging/external/kafka
+- **`database_adapters_should_not_depend_on_other_adapters`** - Database isolation from api/messaging/external/kafka
+- **`messaging_adapters_should_not_depend_on_other_adapters`** - Messaging isolation from api/database/external/kafka
+- **`external_adapters_should_not_depend_on_other_adapters`** - External service isolation from api/database/messaging/kafka
+- **`kafka_adapters_should_not_depend_on_other_adapters`** - Kafka isolation from api/database/messaging/external
+
+### 🧠 Core Domain Architecture Tests (`CoreDomainArchitectureTest.java`)
+Ensures core layer purity and framework independence:
+
+- **`core_should_not_depend_on_adapters`** - Core isolation from adapters
+- **`core_should_not_depend_on_infrastructure_except_stereotypes`** - Limited infrastructure access
+- **`core_should_not_depend_on_spring_framework`** - No Spring dependencies
+- **`core_should_not_depend_on_jpa`** - No JPA annotations
+- **`core_should_not_depend_on_jackson`** - No JSON serialization
+- **`core_should_not_depend_on_web_frameworks`** - No web dependencies
+- **`core_should_not_depend_on_spring_util`** - No Spring utility classes
+- **`core_should_not_use_spring_annotations`** - No @Component, @Service, etc.
+- **`core_should_not_use_jpa_annotations`** - No @Entity, @Table, etc.
+- **`core_should_only_contain_business_logic`** - Limited external dependencies
+- **`core_interfaces_should_be_implemented_in_adapters`** - Dependency inversion
+- **`core_should_not_have_external_annotations`** - No framework annotations
+
+### 🌐 API Adapter Architecture Tests (`ApiAdapterArchitectureTest.java`)
+Validates API adapter implementations and web layer concerns:
 
 - **`controllers_should_be_in_api_adapters`** - Spring controller placement
-- **`repositories_should_be_in_database_adapters`** - Spring repository placement
-- **`services_should_be_in_adapters_only`** - @Service annotation restrictions
-- **`entities_should_not_use_spring_annotations`** - JPA entity purity
-- **`components_should_not_be_in_core`** - @Component restrictions
-- **`autowired_should_not_be_used_in_core`** - No field injection in core
-- **`api_adapters_should_not_use_database_adapters_directly`** - Layer separation
-- **`spring_boot_application_should_be_in_root`** - Main class placement *(mandatory)*
-- **`adapter_services_should_use_spring_annotations`** - Proper adapter annotation
-- **`jpa_entities_should_be_in_database_adapters`** - JPA entity placement
+- **`controllers_should_not_be_in_core`** - Controller isolation
+- **`api_adapters_should_not_use_database_adapters_directly`** - No direct database access
 - **`controllers_should_use_core_port_interfaces`** - Interface usage (excludes DocumentationController)
 - **`controllers_must_depend_on_port_interfaces`** - Dependency inversion (excludes DocumentationController)
+
+### 🗄️ Database Adapter Architecture Tests (`DatabaseAdapterArchitectureTest.java`)
+Validates database adapter implementations and persistence layer concerns:
+
+- **`repositories_should_be_in_database_adapters`** - Spring repository placement
+- **`repositories_should_not_be_in_core`** - Repository isolation
+- **`jpa_entities_should_be_in_database_adapters`** - JPA entity placement
+- **`entities_should_not_use_spring_annotations`** - JPA entity purity
+- **`database_adapters_should_implement_core_interfaces`** - Database adapters implement core ports
+
+### 🔧 Infrastructure Architecture Tests (`InfrastructureArchitectureTest.java`)
+Validates infrastructure layer organization and configuration:
+
+- **`infrastructure_should_only_contain_config_and_utils`** - Infrastructure organization (config, util, stereotype, web)
+- **`infrastructure_should_not_contain_business_logic`** - No business logic in infrastructure
+- **`services_should_be_in_adapters_only`** - @Service annotation only in adapters
+- **`components_should_not_be_in_core`** - @Component restrictions
+- **`autowired_should_not_be_used_in_core`** - No field injection in core
+- **`documentation_controller_should_be_in_infrastructure`** - DocumentationController placement exception
+
 
 ## 🚀 Quick Start
 
@@ -288,20 +335,29 @@ mvn test
 
 ### Run Specific Test Categories
 ```bash
-# Core layer tests only
-mvn test -Dtest=CoreLayerTest
+# Core domain purity tests
+mvn test -Dtest=CoreDomainArchitectureTest
 
-# Adapter tests only
-mvn test -Dtest=AdapterTest
+# API adapter tests
+mvn test -Dtest=ApiAdapterArchitectureTest
 
-# Spring Boot specific tests
-mvn test -Dtest=SpringBootArchitectureTest
+# Database adapter tests
+mvn test -Dtest=DatabaseAdapterArchitectureTest
 
-# Adapter structure tests
+# Infrastructure layer tests
+mvn test -Dtest=InfrastructureArchitectureTest
+
+# Overall layered architecture validation
+mvn test -Dtest=LayeredArchitectureTest
+
+# Adapter structure validation
 mvn test -Dtest=AdapterStructureTest
 
-# Hexagonal architecture tests
-mvn test -Dtest=HexagonalArchitectureTest
+# Run all adapter-related tests
+mvn test -Dtest="*AdapterArchitectureTest"
+
+# Run all tests (clean, organized, no duplicates)
+mvn test
 ```
 
 ### CI/CD Integration
