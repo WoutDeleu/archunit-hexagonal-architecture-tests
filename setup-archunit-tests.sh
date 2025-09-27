@@ -11,6 +11,12 @@ REPO_URL="https://github.com/WoutDeleu/archunit-hexagonal-architecture-tests.git
 TEMP_DIR="/tmp/archunit-setup-$$"
 LOCAL_MODE=false
 
+# Version configuration
+ARCHUNIT_VERSION="1.2.1"
+JUNIT_VERSION="5.10.0"
+SUREFIRE_VERSION="3.1.2"
+COMPILER_PLUGIN_VERSION="3.11.0"
+
 # Check if we're running from within the ArchUnit repository
 if [[ -f "$(dirname "$0")/src/test/java/com/archunit/LayeredArchitectureTest.java" ]]; then
     LOCAL_MODE=true
@@ -54,9 +60,9 @@ show_help() {
     echo "  -h, --help              Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0                                     # Auto-detect package and install"
+    echo "  $0                                     # Auto-detect package and install at same level"
     echo "  $0 -p com.example.tests               # Install with custom package"
-    echo "  $0 -p com.mycompany.arch -u          # Update tests with custom package"
+    echo "  $0 -p com.mycompany.tests -u         # Update tests with custom package"
     echo ""
 }
 
@@ -122,10 +128,10 @@ if [[ "$AUTO_DETECT" = true ]]; then
                           awk '{print $2}')
 
         if [[ -n "$DETECTED_PACKAGE" ]] && [[ "$DETECTED_PACKAGE" != "." ]]; then
-            # Use the detected package + archunit
-            TARGET_PACKAGE="$DETECTED_PACKAGE.archunit"
+            # Use the detected package directly (same level as other tests)
+            TARGET_PACKAGE="$DETECTED_PACKAGE"
             log_success "Detected test package structure: $DETECTED_PACKAGE"
-            log_info "Will place ArchUnit tests in: $TARGET_PACKAGE"
+            log_info "Will place ArchUnit tests in: $TARGET_PACKAGE (same level as other tests)"
         else
             log_warning "Could not detect existing test package structure"
             # Fallback to main source package detection
@@ -137,7 +143,7 @@ if [[ "$AUTO_DETECT" = true ]]; then
                               sort | uniq -c | sort -nr | head -1 | \
                               awk '{print $2}')
                 if [[ -n "$MAIN_PACKAGE" ]] && [[ "$MAIN_PACKAGE" != "." ]]; then
-                    TARGET_PACKAGE="$MAIN_PACKAGE.archunit"
+                    TARGET_PACKAGE="$MAIN_PACKAGE"
                     log_info "Using main package structure: $MAIN_PACKAGE"
                     log_info "Will place ArchUnit tests in: $TARGET_PACKAGE"
                 else
@@ -210,6 +216,45 @@ done
 # Update pom.xml dependencies
 log_info "Checking pom.xml dependencies..."
 
+# Add version properties if they don't exist
+if ! grep -q "archunit.version" pom.xml; then
+    log_info "Adding version properties to pom.xml..."
+
+    if grep -q "<properties>" pom.xml; then
+        # Add properties after existing properties opening tag
+        sed -i.tmp "/<properties>/a\\
+        <archunit.version>$ARCHUNIT_VERSION</archunit.version>\\
+        <junit.version>$JUNIT_VERSION</junit.version>\\
+        <surefire.version>$SUREFIRE_VERSION</surefire.version>\\
+" pom.xml
+        rm -f pom.xml.tmp
+        log_success "Added version properties to existing properties section"
+    else
+        # Create properties section
+        if grep -q "</modelVersion>" pom.xml; then
+            sed -i.tmp "/<\/modelVersion>/a\\
+    <properties>\\
+        <archunit.version>$ARCHUNIT_VERSION</archunit.version>\\
+        <junit.version>$JUNIT_VERSION</junit.version>\\
+        <surefire.version>$SUREFIRE_VERSION</surefire.version>\\
+    </properties>\\
+" pom.xml
+        else
+            sed -i.tmp "/<\/groupId>/a\\
+    <properties>\\
+        <archunit.version>$ARCHUNIT_VERSION</archunit.version>\\
+        <junit.version>$JUNIT_VERSION</junit.version>\\
+        <surefire.version>$SUREFIRE_VERSION</surefire.version>\\
+    </properties>\\
+" pom.xml
+        fi
+        rm -f pom.xml.tmp
+        log_success "Created properties section with version properties"
+    fi
+else
+    log_info "Version properties already present"
+fi
+
 # Check if ArchUnit dependency exists
 if ! grep -q "com.tngtech.archunit" pom.xml; then
     log_info "Adding ArchUnit dependency to pom.xml..."
@@ -232,7 +277,7 @@ if ! grep -q "com.tngtech.archunit" pom.xml; then
         END { exit !found_main_deps }
     ' pom.xml; then
         # Main dependencies section exists, add ArchUnit after the first main <dependencies> tag
-        awk '
+        ARCHUNIT_VERSION="$ARCHUNIT_VERSION" awk '
             /<build>/ { in_build=1 }
             /<\/build>/ { in_build=0 }
             /<plugin>/ { in_plugin=1 }
@@ -243,7 +288,7 @@ if ! grep -q "com.tngtech.archunit" pom.xml; then
                 print "        <dependency>"
                 print "            <groupId>com.tngtech.archunit</groupId>"
                 print "            <artifactId>archunit-junit5</artifactId>"
-                print "            <version>1.2.1</version>"
+                print "            <version>\${archunit.version}</version>"
                 print "            <scope>test</scope>"
                 print "        </dependency>"
                 added=1
@@ -257,30 +302,30 @@ if ! grep -q "com.tngtech.archunit" pom.xml; then
         # No main dependencies section exists, create one
         if grep -q "<build>" pom.xml; then
             # Insert before build section
-            sed -i.tmp '/<build>/i\
-    <dependencies>\
-        <!-- ArchUnit for architecture testing -->\
-        <dependency>\
-            <groupId>com.tngtech.archunit</groupId>\
-            <artifactId>archunit-junit5</artifactId>\
-            <version>1.2.1</version>\
-            <scope>test</scope>\
-        </dependency>\
-    </dependencies>\
-' pom.xml
+            sed -i.tmp "/<build>/i\\
+    <dependencies>\\
+        <!-- ArchUnit for architecture testing -->\\
+        <dependency>\\
+            <groupId>com.tngtech.archunit</groupId>\\
+            <artifactId>archunit-junit5</artifactId>\\
+            <version>\${archunit.version}</version>\\
+            <scope>test</scope>\\
+        </dependency>\\
+    </dependencies>\\
+" pom.xml
         else
             # Insert before closing project tag
-            sed -i.tmp '/<\/project>/i\
-    <dependencies>\
-        <!-- ArchUnit for architecture testing -->\
-        <dependency>\
-            <groupId>com.tngtech.archunit</groupId>\
-            <artifactId>archunit-junit5</artifactId>\
-            <version>1.2.1</version>\
-            <scope>test</scope>\
-        </dependency>\
-    </dependencies>\
-' pom.xml
+            sed -i.tmp "/<\/project>/i\\
+    <dependencies>\\
+        <!-- ArchUnit for architecture testing -->\\
+        <dependency>\\
+            <groupId>com.tngtech.archunit</groupId>\\
+            <artifactId>archunit-junit5</artifactId>\\
+            <version>\${archunit.version}</version>\\
+            <scope>test</scope>\\
+        </dependency>\\
+    </dependencies>\\
+" pom.xml
         fi
         rm -f pom.xml.tmp
         log_success "Created main dependencies section and added ArchUnit"
@@ -298,7 +343,7 @@ if ! grep -q "junit-jupiter" pom.xml; then
     cp pom.xml "$TEMP_POM"
 
     # Add JUnit 5 to the first main dependencies section (not plugin dependencies)
-    awk '
+    JUNIT_VERSION="$JUNIT_VERSION" awk '
         /<build>/ { in_build=1 }
         /<\/build>/ { in_build=0 }
         /<plugin>/ { in_plugin=1 }
@@ -308,7 +353,7 @@ if ! grep -q "junit-jupiter" pom.xml; then
             print "        <dependency>"
             print "            <groupId>org.junit.jupiter</groupId>"
             print "            <artifactId>junit-jupiter</artifactId>"
-            print "            <version>5.10.0</version>"
+            print "            <version>\${junit.version}</version>"
             print "            <scope>test</scope>"
             print "        </dependency>"
             print $0
@@ -334,7 +379,7 @@ if ! grep -q "maven-surefire-plugin" pom.xml; then
             <plugin>\
                 <groupId>org.apache.maven.plugins</groupId>\
                 <artifactId>maven-surefire-plugin</artifactId>\
-                <version>3.1.2</version>\
+                <version>\${surefire.version}</version>\\
             </plugin>\
 ' pom.xml
         else
@@ -344,7 +389,7 @@ if ! grep -q "maven-surefire-plugin" pom.xml; then
             <plugin>\
                 <groupId>org.apache.maven.plugins</groupId>\
                 <artifactId>maven-surefire-plugin</artifactId>\
-                <version>3.1.2</version>\
+                <version>\${surefire.version}</version>\\
             </plugin>\
         </plugins>\
 ' pom.xml
@@ -357,7 +402,7 @@ if ! grep -q "maven-surefire-plugin" pom.xml; then
             <plugin>\
                 <groupId>org.apache.maven.plugins</groupId>\
                 <artifactId>maven-surefire-plugin</artifactId>\
-                <version>3.1.2</version>\
+                <version>\${surefire.version}</version>\\
             </plugin>\
         </plugins>\
     </build>\
