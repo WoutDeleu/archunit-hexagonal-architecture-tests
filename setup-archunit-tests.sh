@@ -379,7 +379,7 @@ if ! grep -q "maven-surefire-plugin" pom.xml; then
             <plugin>\\
                 <groupId>org.apache.maven.plugins</groupId>\\
                 <artifactId>maven-surefire-plugin</artifactId>\\
-                <version>\${surefire.version}</version>\\
+                <version>\\\${surefire.version}</version>\\
             </plugin>\\
 " pom.xml
         else
@@ -389,7 +389,7 @@ if ! grep -q "maven-surefire-plugin" pom.xml; then
             <plugin>\\
                 <groupId>org.apache.maven.plugins</groupId>\\
                 <artifactId>maven-surefire-plugin</artifactId>\\
-                <version>\${surefire.version}</version>\\
+                <version>\\\${surefire.version}</version>\\
             </plugin>\\
         </plugins>\\
 " pom.xml
@@ -402,7 +402,7 @@ if ! grep -q "maven-surefire-plugin" pom.xml; then
             <plugin>\\
                 <groupId>org.apache.maven.plugins</groupId>\\
                 <artifactId>maven-surefire-plugin</artifactId>\\
-                <version>\${surefire.version}</version>\\
+                <version>\\\${surefire.version}</version>\\
             </plugin>\\
         </plugins>\\
     </build>\\
