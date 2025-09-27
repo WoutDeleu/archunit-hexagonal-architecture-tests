@@ -410,6 +410,30 @@ if ! grep -q "maven-surefire-plugin" pom.xml; then
     fi
     rm -f pom.xml.tmp
     log_success "Added Maven Surefire plugin"
+else
+    # Update existing Surefire plugin to use property reference if it has hardcoded version
+    if grep -q "<artifactId>maven-surefire-plugin</artifactId>" pom.xml && grep -A5 "<artifactId>maven-surefire-plugin</artifactId>" pom.xml | grep -q "<version>$SUREFIRE_VERSION</version>"; then
+        log_info "Updating existing Maven Surefire plugin to use property reference..."
+        sed -i.tmp "s|<version>$SUREFIRE_VERSION</version>|<version>\${maven.surefire.version}</version>|g" pom.xml
+        rm -f pom.xml.tmp
+        log_success "Updated Maven Surefire plugin to use property reference"
+    fi
+fi
+
+# Update existing ArchUnit dependencies to use property references
+if grep -q "com.tngtech.archunit" pom.xml && grep -A5 "com.tngtech.archunit" pom.xml | grep -q "<version>$ARCHUNIT_VERSION</version>"; then
+    log_info "Updating existing ArchUnit dependency to use property reference..."
+    sed -i.tmp "s|<version>$ARCHUNIT_VERSION</version>|<version>\${archunit.version}</version>|g" pom.xml
+    rm -f pom.xml.tmp
+    log_success "Updated ArchUnit dependency to use property reference"
+fi
+
+# Update existing JUnit dependencies to use property references
+if grep -q "junit-jupiter" pom.xml && grep -A5 "junit-jupiter" pom.xml | grep -q "<version>$JUNIT_VERSION</version>"; then
+    log_info "Updating existing JUnit 5 dependency to use property reference..."
+    sed -i.tmp "s|<version>$JUNIT_VERSION</version>|<version>\${junit.version}</version>|g" pom.xml
+    rm -f pom.xml.tmp
+    log_success "Updated JUnit 5 dependency to use property reference"
 fi
 
 # Detect and suggest main package structure
