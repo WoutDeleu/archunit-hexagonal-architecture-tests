@@ -13,6 +13,9 @@
     <description>Perfect hexagonal architecture that passes all ArchUnit tests</description>
 
     <properties>
+        <archunit.version>1.2.1</archunit.version>
+        <junit.version>5.10.0</junit.version>
+        <maven.surefire.version>3.1.2</maven.surefire.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -42,7 +45,7 @@
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit-junit5</artifactId>
-            <version>1.2.1</version>
+            <version>${archunit.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -50,7 +53,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>5.10.0</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -60,7 +63,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>${maven.surefire.version}</version>
             </plugin>
         </plugins>
     </build>

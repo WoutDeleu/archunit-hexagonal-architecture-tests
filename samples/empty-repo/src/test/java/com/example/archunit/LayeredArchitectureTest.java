@@ -17,7 +17,7 @@ import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 import static com.tngtech.archunit.base.DescribedPredicate.describe;
 
 @AnalyzeClasses(
-    packages = "com.example",
+    packages = "com",
     importOptions = {
         ImportOption.DoNotIncludeTests.class,
         ImportOption.DoNotIncludeJars.class,
@@ -55,7 +55,7 @@ public class LayeredArchitectureTest {
                 .whereLayer("Core").mayOnlyBeAccessedByLayers("Adapters", "Infrastructure")
                 .whereLayer("Adapters").mayNotBeAccessedByAnyLayer()
                 .ignoreDependency(
-                    describe("Application root classes", clazz -> clazz.getPackageName().equals("com.example")),
+                    describe("Application root classes", clazz -> !clazz.getPackageName().contains(".core.") && !clazz.getPackageName().contains(".adapters.") && !clazz.getPackageName().contains(".infrastructure.")),
                     describe("Core classes", clazz -> clazz.getPackageName().contains(".core."))
                 )
                 .check(classes);

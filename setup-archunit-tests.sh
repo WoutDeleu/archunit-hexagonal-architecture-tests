@@ -216,43 +216,61 @@ done
 # Update pom.xml dependencies
 log_info "Checking pom.xml dependencies..."
 
-# Add version properties if they don't exist
-if ! grep -q "archunit.version" pom.xml; then
-    log_info "Adding version properties to pom.xml..."
+# Check and add individual version properties
+PROPERTIES_ADDED=false
 
-    if grep -q "<properties>" pom.xml; then
-        # Add properties after existing properties opening tag
-        sed -i.tmp "/<properties>/a\\
-        <archunit.version>$ARCHUNIT_VERSION</archunit.version>\\
-        <junit.version>$JUNIT_VERSION</junit.version>\\
-        <maven.surefire.version>$SUREFIRE_VERSION</maven.surefire.version>\\
+# Check if properties section exists, if not create it
+if ! grep -q "<properties>" pom.xml; then
+    log_info "Creating properties section in pom.xml..."
+    if grep -q "</modelVersion>" pom.xml; then
+        sed -i.tmp "/<\/modelVersion>/a\\
+    <properties>\\
+    </properties>\\
 " pom.xml
-        rm -f pom.xml.tmp
-        log_success "Added version properties to existing properties section"
     else
-        # Create properties section
-        if grep -q "</modelVersion>" pom.xml; then
-            sed -i.tmp "/<\/modelVersion>/a\\
+        sed -i.tmp "/<\/groupId>/a\\
     <properties>\\
-        <archunit.version>$ARCHUNIT_VERSION</archunit.version>\\
-        <junit.version>$JUNIT_VERSION</junit.version>\\
-        <maven.surefire.version>$SUREFIRE_VERSION</maven.surefire.version>\\
     </properties>\\
 " pom.xml
-        else
-            sed -i.tmp "/<\/groupId>/a\\
-    <properties>\\
-        <archunit.version>$ARCHUNIT_VERSION</archunit.version>\\
-        <junit.version>$JUNIT_VERSION</junit.version>\\
-        <maven.surefire.version>$SUREFIRE_VERSION</maven.surefire.version>\\
-    </properties>\\
-" pom.xml
-        fi
-        rm -f pom.xml.tmp
-        log_success "Created properties section with version properties"
     fi
+    rm -f pom.xml.tmp
+    log_success "Created properties section"
+fi
+
+# Add archunit.version if missing
+if ! grep -q "archunit.version" pom.xml; then
+    log_info "Adding archunit.version property..."
+    sed -i.tmp "/<properties>/a\\
+        <archunit.version>$ARCHUNIT_VERSION</archunit.version>\\
+" pom.xml
+    rm -f pom.xml.tmp
+    PROPERTIES_ADDED=true
+fi
+
+# Add junit.version if missing
+if ! grep -q "junit.version" pom.xml; then
+    log_info "Adding junit.version property..."
+    sed -i.tmp "/<properties>/a\\
+        <junit.version>$JUNIT_VERSION</junit.version>\\
+" pom.xml
+    rm -f pom.xml.tmp
+    PROPERTIES_ADDED=true
+fi
+
+# Add maven.surefire.version if missing
+if ! grep -q "maven.surefire.version" pom.xml; then
+    log_info "Adding maven.surefire.version property..."
+    sed -i.tmp "/<properties>/a\\
+        <maven.surefire.version>$SUREFIRE_VERSION</maven.surefire.version>\\
+" pom.xml
+    rm -f pom.xml.tmp
+    PROPERTIES_ADDED=true
+fi
+
+if [[ "$PROPERTIES_ADDED" = true ]]; then
+    log_success "Added missing version properties to pom.xml"
 else
-    log_info "Version properties already present"
+    log_info "All version properties already present"
 fi
 
 # Check if ArchUnit dependency exists

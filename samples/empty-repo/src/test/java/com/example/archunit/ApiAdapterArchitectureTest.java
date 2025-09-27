@@ -8,7 +8,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
 
 @AnalyzeClasses(
-    packages = "com.example",
+    packages = "com",
     importOptions = {
         ImportOption.DoNotIncludeTests.class,
         ImportOption.DoNotIncludeJars.class,

@@ -17,7 +17,7 @@ import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 import static com.tngtech.archunit.base.DescribedPredicate.describe;
 
 @AnalyzeClasses(
-    packages = "com.example",
+    packages = "com",
     importOptions = {
         ImportOption.DoNotIncludeTests.class,
         ImportOption.DoNotIncludeJars.class,
