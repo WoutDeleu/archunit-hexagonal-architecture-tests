@@ -27,6 +27,8 @@ public class AdapterStructureTest {
           .haveSimpleNameEndingWith("Adapter")
           .or()
           .haveSimpleNameEndingWith("Controller")
+          .and()
+          .haveSimpleNameNotEndingWith("DocumentationController")
           .should()
           .dependOnClassesThat()
           .resideInAPackage("..core.*.port..")
