@@ -118,12 +118,12 @@ if [[ "$AUTO_DETECT" = true ]]; then
     log_info "Auto-detecting package structure..."
 
     if [[ -d "src/test/java" ]]; then
-        # Find the most common package structure in existing tests (excluding archunit packages)
+        # Find the common root package (take first 2-3 segments, not the deepest)
         DETECTED_PACKAGE=$(find src/test/java -name "*.java" -exec dirname {} \; | \
                           sed 's|src/test/java/||' | \
                           tr '/' '.' | \
                           grep -v '\.archunit' | \
-                          head -10 | \
+                          cut -d'.' -f1-3 | \
                           sort | uniq -c | sort -nr | head -1 | \
                           awk '{print $2}')
 
@@ -139,7 +139,7 @@ if [[ "$AUTO_DETECT" = true ]]; then
                 MAIN_PACKAGE=$(find src/main/java -name "*.java" -exec dirname {} \; | \
                               sed 's|src/main/java/||' | \
                               tr '/' '.' | \
-                              cut -d'.' -f1-3 | \
+                              cut -d'.' -f1-2 | \
                               sort | uniq -c | sort -nr | head -1 | \
                               awk '{print $2}')
                 if [[ -n "$MAIN_PACKAGE" ]] && [[ "$MAIN_PACKAGE" != "." ]]; then
