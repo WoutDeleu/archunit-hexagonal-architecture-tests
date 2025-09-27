@@ -217,23 +217,47 @@ if ! grep -q "com.tngtech.archunit" pom.xml; then
     # Create backup
     cp pom.xml pom.xml.backup
 
-    # Find dependencies section and add ArchUnit
-    if grep -q "<dependencies>" pom.xml; then
-        # Add after existing dependencies
-        sed -i.tmp '/<dependencies>/a\
-        <!-- ArchUnit for architecture testing -->\
-        <dependency>\
-            <groupId>com.tngtech.archunit</groupId>\
-            <artifactId>archunit-junit5</artifactId>\
-            <version>1.2.1</version>\
-            <scope>test</scope>\
-        </dependency>\
-' pom.xml
-        rm -f pom.xml.tmp
-        log_success "Added ArchUnit dependency"
+    # Use a more sophisticated approach to find main dependencies section
+    # Create a temporary file to work with XML structure
+    TEMP_POM="$TEMP_DIR/temp_pom.xml"
+    cp pom.xml "$TEMP_POM"
+
+    # Check if main dependencies section exists (not inside <build> or <plugin>)
+    if awk '
+        /<build>/ { in_build=1 }
+        /<\/build>/ { in_build=0 }
+        /<plugin>/ { in_plugin=1 }
+        /<\/plugin>/ { in_plugin=0 }
+        /<dependencies>/ && !in_build && !in_plugin { found_main_deps=1; exit }
+        END { exit !found_main_deps }
+    ' pom.xml; then
+        # Main dependencies section exists, add ArchUnit after the first main <dependencies> tag
+        awk '
+            /<build>/ { in_build=1 }
+            /<\/build>/ { in_build=0 }
+            /<plugin>/ { in_plugin=1 }
+            /<\/plugin>/ { in_plugin=0 }
+            /<dependencies>/ && !in_build && !in_plugin && !added {
+                print $0
+                print "        <!-- ArchUnit for architecture testing -->"
+                print "        <dependency>"
+                print "            <groupId>com.tngtech.archunit</groupId>"
+                print "            <artifactId>archunit-junit5</artifactId>"
+                print "            <version>1.2.1</version>"
+                print "            <scope>test</scope>"
+                print "        </dependency>"
+                added=1
+                next
+            }
+            { print }
+        ' pom.xml > "$TEMP_POM"
+        mv "$TEMP_POM" pom.xml
+        log_success "Added ArchUnit dependency to main dependencies section"
     else
-        # No dependencies section exists, create one
-        sed -i.tmp '/<\/project>/i\
+        # No main dependencies section exists, create one
+        if grep -q "<build>" pom.xml; then
+            # Insert before build section
+            sed -i.tmp '/<build>/i\
     <dependencies>\
         <!-- ArchUnit for architecture testing -->\
         <dependency>\
@@ -244,8 +268,22 @@ if ! grep -q "com.tngtech.archunit" pom.xml; then
         </dependency>\
     </dependencies>\
 ' pom.xml
+        else
+            # Insert before closing project tag
+            sed -i.tmp '/<\/project>/i\
+    <dependencies>\
+        <!-- ArchUnit for architecture testing -->\
+        <dependency>\
+            <groupId>com.tngtech.archunit</groupId>\
+            <artifactId>archunit-junit5</artifactId>\
+            <version>1.2.1</version>\
+            <scope>test</scope>\
+        </dependency>\
+    </dependencies>\
+' pom.xml
+        fi
         rm -f pom.xml.tmp
-        log_success "Created dependencies section and added ArchUnit"
+        log_success "Created main dependencies section and added ArchUnit"
     fi
 else
     log_info "ArchUnit dependency already present"
@@ -255,18 +293,32 @@ fi
 if ! grep -q "junit-jupiter" pom.xml; then
     log_info "Adding JUnit 5 dependency to pom.xml..."
 
-    # Add JUnit 5 before closing dependencies tag
-    sed -i.tmp '/<\/dependencies>/i\
-        <!-- JUnit 5 for testing -->\
-        <dependency>\
-            <groupId>org.junit.jupiter</groupId>\
-            <artifactId>junit-jupiter</artifactId>\
-            <version>5.10.0</version>\
-            <scope>test</scope>\
-        </dependency>\
-' pom.xml
-    rm -f pom.xml.tmp
-    log_success "Added JUnit 5 dependency"
+    # Use the same sophisticated approach for JUnit 5
+    TEMP_POM="$TEMP_DIR/temp_pom_junit.xml"
+    cp pom.xml "$TEMP_POM"
+
+    # Add JUnit 5 to the first main dependencies section (not plugin dependencies)
+    awk '
+        /<build>/ { in_build=1 }
+        /<\/build>/ { in_build=0 }
+        /<plugin>/ { in_plugin=1 }
+        /<\/plugin>/ { in_plugin=0 }
+        /<\/dependencies>/ && !in_build && !in_plugin && !added {
+            print "        <!-- JUnit 5 for testing -->"
+            print "        <dependency>"
+            print "            <groupId>org.junit.jupiter</groupId>"
+            print "            <artifactId>junit-jupiter</artifactId>"
+            print "            <version>5.10.0</version>"
+            print "            <scope>test</scope>"
+            print "        </dependency>"
+            print $0
+            added=1
+            next
+        }
+        { print }
+    ' pom.xml > "$TEMP_POM"
+    mv "$TEMP_POM" pom.xml
+    log_success "Added JUnit 5 dependency to main dependencies section"
 else
     log_info "JUnit 5 dependency already present"
 fi
