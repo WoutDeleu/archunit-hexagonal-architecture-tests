@@ -225,7 +225,7 @@ if ! grep -q "archunit.version" pom.xml; then
         sed -i.tmp "/<properties>/a\\
         <archunit.version>$ARCHUNIT_VERSION</archunit.version>\\
         <junit.version>$JUNIT_VERSION</junit.version>\\
-        <surefire.version>$SUREFIRE_VERSION</surefire.version>\\
+        <maven.surefire.version>$SUREFIRE_VERSION</maven.surefire.version>\\
 " pom.xml
         rm -f pom.xml.tmp
         log_success "Added version properties to existing properties section"
@@ -236,7 +236,7 @@ if ! grep -q "archunit.version" pom.xml; then
     <properties>\\
         <archunit.version>$ARCHUNIT_VERSION</archunit.version>\\
         <junit.version>$JUNIT_VERSION</junit.version>\\
-        <surefire.version>$SUREFIRE_VERSION</surefire.version>\\
+        <maven.surefire.version>$SUREFIRE_VERSION</maven.surefire.version>\\
     </properties>\\
 " pom.xml
         else
@@ -244,7 +244,7 @@ if ! grep -q "archunit.version" pom.xml; then
     <properties>\\
         <archunit.version>$ARCHUNIT_VERSION</archunit.version>\\
         <junit.version>$JUNIT_VERSION</junit.version>\\
-        <surefire.version>$SUREFIRE_VERSION</surefire.version>\\
+        <maven.surefire.version>$SUREFIRE_VERSION</maven.surefire.version>\\
     </properties>\\
 " pom.xml
         fi
@@ -379,7 +379,7 @@ if ! grep -q "maven-surefire-plugin" pom.xml; then
             <plugin>\\
                 <groupId>org.apache.maven.plugins</groupId>\\
                 <artifactId>maven-surefire-plugin</artifactId>\\
-                <version>\\\${surefire.version}</version>\\
+                <version>\\\${maven.surefire.version}</version>\\
             </plugin>\\
 " pom.xml
         else
@@ -389,7 +389,7 @@ if ! grep -q "maven-surefire-plugin" pom.xml; then
             <plugin>\\
                 <groupId>org.apache.maven.plugins</groupId>\\
                 <artifactId>maven-surefire-plugin</artifactId>\\
-                <version>\\\${surefire.version}</version>\\
+                <version>\\\${maven.surefire.version}</version>\\
             </plugin>\\
         </plugins>\\
 " pom.xml
@@ -402,7 +402,7 @@ if ! grep -q "maven-surefire-plugin" pom.xml; then
             <plugin>\\
                 <groupId>org.apache.maven.plugins</groupId>\\
                 <artifactId>maven-surefire-plugin</artifactId>\\
-                <version>\\\${surefire.version}</version>\\
+                <version>\\\${maven.surefire.version}</version>\\
             </plugin>\\
         </plugins>\\
     </build>\\
