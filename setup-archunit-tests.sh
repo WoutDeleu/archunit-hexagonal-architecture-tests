@@ -375,38 +375,38 @@ if ! grep -q "maven-surefire-plugin" pom.xml; then
     if grep -q "<build>" pom.xml; then
         if grep -q "<plugins>" pom.xml; then
             # Add to existing plugins section
-            sed -i.tmp '/<plugins>/a\
-            <plugin>\
-                <groupId>org.apache.maven.plugins</groupId>\
-                <artifactId>maven-surefire-plugin</artifactId>\
+            sed -i.tmp "/<plugins>/a\\
+            <plugin>\\
+                <groupId>org.apache.maven.plugins</groupId>\\
+                <artifactId>maven-surefire-plugin</artifactId>\\
                 <version>\${surefire.version}</version>\\
-            </plugin>\
-' pom.xml
+            </plugin>\\
+" pom.xml
         else
             # Create plugins section in build
-            sed -i.tmp '/<build>/a\
-        <plugins>\
-            <plugin>\
-                <groupId>org.apache.maven.plugins</groupId>\
-                <artifactId>maven-surefire-plugin</artifactId>\
+            sed -i.tmp "/<build>/a\\
+        <plugins>\\
+            <plugin>\\
+                <groupId>org.apache.maven.plugins</groupId>\\
+                <artifactId>maven-surefire-plugin</artifactId>\\
                 <version>\${surefire.version}</version>\\
-            </plugin>\
-        </plugins>\
-' pom.xml
+            </plugin>\\
+        </plugins>\\
+" pom.xml
         fi
     else
         # Create build section
-        sed -i.tmp '/<\/dependencies>/a\
-    <build>\
-        <plugins>\
-            <plugin>\
-                <groupId>org.apache.maven.plugins</groupId>\
-                <artifactId>maven-surefire-plugin</artifactId>\
+        sed -i.tmp "/<\/dependencies>/a\\
+    <build>\\
+        <plugins>\\
+            <plugin>\\
+                <groupId>org.apache.maven.plugins</groupId>\\
+                <artifactId>maven-surefire-plugin</artifactId>\\
                 <version>\${surefire.version}</version>\\
-            </plugin>\
-        </plugins>\
-    </build>\
-' pom.xml
+            </plugin>\\
+        </plugins>\\
+    </build>\\
+" pom.xml
     fi
     rm -f pom.xml.tmp
     log_success "Added Maven Surefire plugin"
