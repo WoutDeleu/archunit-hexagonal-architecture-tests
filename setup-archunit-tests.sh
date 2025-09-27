@@ -60,9 +60,9 @@ show_help() {
     echo "  -h, --help              Show this help message"
     echo ""
     echo "Examples:"
-    echo "  $0                                     # Auto-detect package and install at same level"
-    echo "  $0 -p com.example.tests               # Install with custom package"
-    echo "  $0 -p com.mycompany.tests -u         # Update tests with custom package"
+    echo "  $0                                     # Auto-detect package and install in archunit subfolder"
+    echo "  $0 -p com.example.archunit            # Install with custom package"
+    echo "  $0 -p com.mycompany.archunit -u      # Update tests with custom package"
     echo ""
 }
 
@@ -128,10 +128,10 @@ if [[ "$AUTO_DETECT" = true ]]; then
                           awk '{print $2}')
 
         if [[ -n "$DETECTED_PACKAGE" ]] && [[ "$DETECTED_PACKAGE" != "." ]]; then
-            # Use the detected package directly (same level as other tests)
-            TARGET_PACKAGE="$DETECTED_PACKAGE"
+            # Use the detected package + archunit subfolder
+            TARGET_PACKAGE="$DETECTED_PACKAGE.archunit"
             log_success "Detected test package structure: $DETECTED_PACKAGE"
-            log_info "Will place ArchUnit tests in: $TARGET_PACKAGE (same level as other tests)"
+            log_info "Will place ArchUnit tests in: $TARGET_PACKAGE"
         else
             log_warning "Could not detect existing test package structure"
             # Fallback to main source package detection
@@ -143,7 +143,7 @@ if [[ "$AUTO_DETECT" = true ]]; then
                               sort | uniq -c | sort -nr | head -1 | \
                               awk '{print $2}')
                 if [[ -n "$MAIN_PACKAGE" ]] && [[ "$MAIN_PACKAGE" != "." ]]; then
-                    TARGET_PACKAGE="$MAIN_PACKAGE"
+                    TARGET_PACKAGE="$MAIN_PACKAGE.archunit"
                     log_info "Using main package structure: $MAIN_PACKAGE"
                     log_info "Will place ArchUnit tests in: $TARGET_PACKAGE"
                 else
