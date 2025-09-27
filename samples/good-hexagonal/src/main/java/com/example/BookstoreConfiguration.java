@@ -6,12 +6,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Configuration class - correctly placed in infrastructure.
- * ✅ Passes: infrastructure_should_only_contain_config_and_utils
- * ✅ Passes: infrastructure_should_not_contain_business_logic
+ * Application configuration class - correctly placed at root level next to main application.
+ * ✅ Demonstrates: Proper placement of configuration that creates core beans
+ * ✅ Follows hexagonal architecture: Configuration at application boundary, not in infrastructure
  */
 @Configuration
-public class BookstoreApplicationConfig {
+public class BookstoreConfiguration {
 
     @Bean
     public BookService bookService(BookRepository bookRepository) {

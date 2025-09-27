@@ -9,6 +9,200 @@ A comprehensive collection of **ArchUnit tests** for enforcing **hexagonal archi
 
 > **✨ Latest Updates**: Generic cross-adapter isolation rules, cleaned duplicate tests, comprehensive package structure validation with self-dependency support, and empty repository compatibility!
 
+## 🚀 Quick Start
+
+### 1. Install in Existing Repository
+
+For an existing Java Maven project, run this single command in your project root:
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/WoutDeleu/archunit-hexagonal-architecture-tests/main/setup-archunit-tests.sh)
+```
+
+This command will:
+- Auto-detect your project's package structure
+- Install all ArchUnit test files with correct package names
+- Add ArchUnit and JUnit 5 dependencies to your pom.xml
+- Create Maven Surefire plugin configuration if needed
+- Generate a README with instructions
+- Clean up temporary files automatically
+
+**Advanced usage:**
+```bash
+# Install with custom package
+bash <(curl -s https://raw.githubusercontent.com/WoutDeleu/archunit-hexagonal-architecture-tests/main/setup-archunit-tests.sh) -p com.mycompany.tests
+
+# Update existing tests
+bash <(curl -s https://raw.githubusercontent.com/WoutDeleu/archunit-hexagonal-architecture-tests/main/setup-archunit-tests.sh) -u
+```
+
+### 2. Manual Installation
+
+If you prefer manual setup, follow these steps:
+
+#### Add Dependencies
+
+```xml
+<dependencies>
+    <!-- ArchUnit for architecture testing -->
+    <dependency>
+        <groupId>com.tngtech.archunit</groupId>
+        <artifactId>archunit-junit5</artifactId>
+        <version>1.2.1</version>
+        <scope>test</scope>
+    </dependency>
+
+    <!-- JUnit 5 -->
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>5.10.0</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+#### Copy Test Classes
+
+Copy all test classes from `src/test/java/com/archunit/` to your project.
+
+#### Update Package Configuration
+
+Modify the `@AnalyzeClasses` annotation in each test class:
+
+```java
+@AnalyzeClasses(
+    packages = "com.yourcompany.yourapp", // 👈 Update this
+    importOptions = {
+        ImportOption.DoNotIncludeTests.class,
+        ImportOption.DoNotIncludeJars.class,
+        ImportOption.DoNotIncludeArchives.class
+    }
+)
+```
+
+#### Run Tests
+
+```bash
+mvn test
+```
+
+## 🧊 ArchUnit Freeze Functionality (Recommended!)
+
+One of ArchUnit's most powerful features is the **freeze functionality** that allows you to gradually improve your architecture without breaking existing builds.
+
+### 🎯 Why Use Freeze?
+
+When introducing ArchUnit tests to an existing codebase, you might have hundreds of violations. The freeze functionality allows you to:
+
+- **✅ Lock in current violations** - Prevent new violations while allowing existing ones
+- **✅ Gradual improvement** - Fix violations over time without breaking CI/CD
+- **✅ Team adoption** - Introduce architecture rules without disrupting development
+- **✅ Prevent regression** - Ensure existing violations don't get worse
+
+### 🔧 How to Enable Freeze
+
+Add this to your test classes:
+
+```java
+@AnalyzeClasses(packages = "com.yourcompany.yourapp")
+public class YourArchitectureTest {
+
+    @ArchTest
+    static final ArchRule hexagonal_architecture_is_respected =
+        layeredArchitecture("Hexagonal Architecture")
+            .consideringAllDependencies()
+            .layer("Core").definedBy("..core..")
+            .layer("Adapters").definedBy("..adapters..")
+            .layer("Infrastructure").definedBy("..infrastructure..")
+            .whereLayer("Core").mayNotAccessAnyLayer()
+            .whereLayer("Adapters").mayOnlyAccessLayers("Core", "Infrastructure")
+            .whereLayer("Infrastructure").mayOnlyAccessLayers("Core")
+            .because("hexagonal architecture must be respected")
+            .allowEmptyShould(true)
+            // 🧊 Add freeze functionality
+            .as("hexagonal_architecture_is_respected");
+
+    // Enable freeze store (choose one approach)
+    static {
+        ArchConfiguration.get().setProperty("freeze.store.default.path",
+            "src/test/resources/archunit_store");
+    }
+}
+```
+
+### 📁 Freeze Store Options
+
+#### 1. **File-based Store (Recommended for most projects)**
+```java
+@ArchTest
+static final ArchRule rule = someRule()
+    .as("my_architecture_rule"); // Rule name used for freeze file
+
+static {
+    ArchConfiguration.get().setProperty("freeze.store.default.path",
+        "src/test/resources/archunit_store");
+}
+```
+
+#### 2. **VCS Integration (Git-based)**
+```java
+static {
+    ArchConfiguration.get().setProperty("freeze.store.default.allowStoreCreation", "true");
+    ArchConfiguration.get().setProperty("freeze.store.default.path", "archunit_store");
+}
+```
+
+### 🏃‍♂️ Workflow with Freeze
+
+1. **Initial Setup**: Run tests - ArchUnit creates freeze files with current violations
+2. **Development**: New violations cause test failures, existing ones are "frozen"
+3. **Improvement**: Fix violations and delete corresponding freeze entries
+4. **Team Adoption**: Everyone benefits from preventing new violations
+
+### 📋 Example: Gradual Architecture Improvement
+
+```java
+// Before: 50 violations, build fails ❌
+@ArchTest
+static final ArchRule adapters_should_not_depend_on_each_other =
+    noClasses().that().resideInAPackage("..adapters..")
+        .should().dependOnClassesThat().resideInAPackage("..adapters..")
+        .because("adapters should not depend on each other");
+
+// After: Enable freeze ✅
+@ArchTest
+static final ArchRule adapters_should_not_depend_on_each_other =
+    noClasses().that().resideInAPackage("..adapters..")
+        .should().dependOnClassesThat().resideInAPackage("..adapters..")
+        .because("adapters should not depend on each other")
+        .as("adapters_isolation_rule"); // Enables freeze for this rule
+
+// Result: Existing 50 violations frozen, new violations still fail build!
+```
+
+### ⚙️ Freeze Configuration
+
+Add to your `archunit.properties` file:
+
+```properties
+# Enable freeze functionality
+freeze.store.default.allowStoreCreation=true
+freeze.store.default.path=src/test/resources/archunit_store
+
+# Freeze behavior
+freeze.refreeze=false                    # Don't automatically refreeze
+freeze.store.default.allowStoreUpdate=true  # Allow manual updates
+```
+
+### 💡 Best Practices with Freeze
+
+1. **Start with freeze enabled** when introducing ArchUnit to existing codebases
+2. **Commit freeze files** to version control for team consistency
+3. **Review freeze files** during code reviews to prevent new violations
+4. **Set team goals** to gradually reduce frozen violations
+5. **Use descriptive rule names** with `.as("rule_name")` for clear freeze files
+
 ## 🎯 Overview
 
 This project provides a battle-tested set of reusable ArchUnit tests that validate hexagonal architecture patterns in Java applications. The tests enforce proper separation of concerns between core business logic, adapters, and infrastructure layers, helping maintain clean architecture principles.
@@ -86,7 +280,7 @@ Ensures core layer purity and framework independence:
 - **`core_should_not_use_jpa_annotations`** - No @Entity, @Table, etc.
 - **`core_entities_should_not_extend_adapter_classes`** - Domain isolation
 - **`core_should_only_contain_business_logic`** - Limited external dependencies
-- **`core_interfaces_should_be_implemented_in_adapters`** - Dependency inversion
+- **`core_interfaces_should_be_implemented_in_adapters`** - Dependency inversion (allows infrastructure configuration)
 - **`core_should_not_have_external_annotations`** - No framework annotations
 
 ### 🏛️ Hexagonal Architecture Tests (`HexagonalArchitectureTest.java`)
@@ -119,7 +313,7 @@ Enforces adapter layer structure and dependencies:
 Validates adapter package organization:
 
 - **`adapter_classes_should_implement_core_ports`** - Port interface implementation
-- **`each_adapter_package_should_have_at_least_one_adapter_class`** - Mandatory adapter classes
+- **`adapter_packages_contain_appropriate_classes`** - Adapter packages should contain classes ending with 'Adapter', 'Controller', or 'Repository'
 
 ### 🏛️ Layered Architecture Tests (`LayeredArchitectureTest.java`)
 Validates overall architectural boundaries and cross-adapter isolation:
@@ -142,7 +336,7 @@ Ensures core layer purity and framework independence:
 - **`core_should_not_use_spring_annotations`** - No @Component, @Service, etc.
 - **`core_should_not_use_jpa_annotations`** - No @Entity, @Table, etc.
 - **`core_should_only_contain_business_logic`** - Limited external dependencies
-- **`core_interfaces_should_be_implemented_in_adapters`** - Dependency inversion
+- **`core_interfaces_should_be_implemented_in_adapters`** - Dependency inversion (allows infrastructure configuration)
 - **`core_should_not_have_external_annotations`** - No framework annotations
 
 ### 🌐 API Adapter Architecture Tests (`ApiAdapterArchitectureTest.java`)
@@ -172,56 +366,6 @@ Validates infrastructure layer organization and configuration:
 - **`components_should_not_be_in_core`** - @Component restrictions
 - **`autowired_should_not_be_used_in_core`** - No field injection in core
 - **`documentation_controller_should_be_in_infrastructure`** - DocumentationController placement exception
-
-
-## 🚀 Quick Start
-
-### 1. Add Dependencies
-
-```xml
-<dependencies>
-    <!-- ArchUnit for architecture testing -->
-    <dependency>
-        <groupId>com.tngtech.archunit</groupId>
-        <artifactId>archunit-junit5</artifactId>
-        <version>1.2.1</version>
-        <scope>test</scope>
-    </dependency>
-
-    <!-- JUnit 5 -->
-    <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter</artifactId>
-        <version>5.10.0</version>
-        <scope>test</scope>
-    </dependency>
-</dependencies>
-```
-
-### 2. Copy Test Classes
-
-Copy all test classes from `src/test/java/com/archunit/hexagonal/` to your project.
-
-### 3. Update Package Configuration
-
-Modify the `@AnalyzeClasses` annotation in each test class:
-
-```java
-@AnalyzeClasses(
-    packages = "com.yourcompany.yourapp", // 👈 Update this
-    importOptions = {
-        ImportOption.DoNotIncludeTests.class,
-        ImportOption.DoNotIncludeJars.class,
-        ImportOption.DoNotIncludeArchives.class
-    }
-)
-```
-
-### 4. Run Tests
-
-```bash
-mvn test
-```
 
 ## 📁 Recommended Package Structure
 
