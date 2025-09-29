@@ -49,9 +49,9 @@ public class LayeredArchitectureTest {
             (hasAdapterClasses && hasInfrastructureClasses)) {
             layeredArchitecture()
                 .consideringAllDependencies()
-                .layer("Core").definedBy("..core..")
-                .layer("Adapters").definedBy("..adapters..")
-                .layer("Infrastructure").definedBy("..infrastructure..")
+                .optionalLayer("Core").definedBy("..core..")
+                .optionalLayer("Adapters").definedBy("..adapters..")
+                .optionalLayer("Infrastructure").definedBy("..infrastructure..")
                 .whereLayer("Core").mayOnlyBeAccessedByLayers("Adapters", "Infrastructure")
                 .whereLayer("Adapters").mayNotBeAccessedByAnyLayer()
                 .ignoreDependency(
