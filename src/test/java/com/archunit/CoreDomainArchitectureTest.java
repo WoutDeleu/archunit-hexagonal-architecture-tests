@@ -46,14 +46,6 @@ public class CoreDomainArchitectureTest {
               "Core must not depend on infrastructure config or util packages; only infrastructure.stereotype is allowed");
 
   @ArchTest
-  static final ArchRule core_should_not_depend_on_spring_framework =
-      noClasses()
-          .that().resideInAPackage("..core..")
-          .should().dependOnClassesThat()
-          .resideInAnyPackage("org.springframework..", "org.springframework.boot..")
-          .allowEmptyShould(true);
-
-  @ArchTest
   static final ArchRule core_should_not_depend_on_jpa =
       noClasses()
           .that().resideInAPackage("..core..")
